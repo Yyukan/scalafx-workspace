@@ -1,12 +1,13 @@
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 
+import scalafx.collections.ObservableBuffer
 import scalafx.scene.input.KeyCombination
 import scalafx.scene.layout.HBox
 
 import scalafx.application.{Platform, JFXApp}
 import scalafx.application.JFXApp.PrimaryStage
-import scalafx.geometry.Side
+import scalafx.geometry.{Orientation, Side}
 import scalafx.scene
 import scalafx.scene.Scene
 import scalafx.scene.control.TabPane.TabClosingPolicy
@@ -21,7 +22,20 @@ object WorkspaceApp extends JFXApp {
 
   val rootTreeItem = new TreeItem[String]("Sessions") {
     expanded = true
-    //children = EnsembleTree.create().getTree
+    children = ObservableBuffer(
+      new TreeItem[String] {
+        value = "Node 1"
+      },
+      new TreeItem[String] {
+        value = "Node 2"
+      },
+      new TreeItem[String] {
+        value = "Node 3"
+        children = ObservableBuffer(
+          (4 to 12).map(n => new TreeItem[String]("Child Node " + n))
+        )
+      }
+    )
   }
 
   val controlsView = new TreeView[String]() {
@@ -29,6 +43,8 @@ object WorkspaceApp extends JFXApp {
     root = rootTreeItem
     id = "page-tree"
   }
+
+  controlsView.getSelectionModel.setSelectionMode(SelectionMode.SINGLE)
 
   val centerPane = new TabPane {
     tabs = Seq(
@@ -47,6 +63,7 @@ object WorkspaceApp extends JFXApp {
   }
 
   val scrollPane = new ScrollPane {
+    minWidth = 300
     fitToWidth = true
     fitToHeight = true
     id = "page-tree"
@@ -55,6 +72,7 @@ object WorkspaceApp extends JFXApp {
 
   val splitPane = new SplitPane {
     dividerPositions = 0
+
     id = "page-splitpane"
     items.addAll(scrollPane, centerPane)
   }
@@ -66,6 +84,10 @@ object WorkspaceApp extends JFXApp {
       items = List(
         new MenuItem("Connect") {
         },
+
+        new MenuItem("Deploy") {
+        },
+
         new MenuItem("Quit") {
           accelerator = KeyCombination.keyCombination("Ctrl+X")
           onAction = new EventHandler[ActionEvent] {
